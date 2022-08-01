@@ -14,7 +14,7 @@
 #' @export
 #'
 #' @examples
-sampled_geodist <- function(x, modeldomain, samples, cvfolds = NA, cv_method=TRUE, stat = 'ecdf', showPlot = TRUE) {
+sampled_geodist <- function(x, modeldomain, samples, cvfolds = NA, cv_method=TRUE, stat = 'density', showPlot = TRUE) {
 
   row_numbers <- sample(1:nrow(x), samples)
   row_numbers <- sort(row_numbers)

@@ -23,6 +23,7 @@ library(CAST)
 library(raster)
 library(ggplot2)
 library(ggpubr)
+load(system.file("extdata", "data", "mask.Rdata", package="emodis"))
 ```
 
 ## Sampling Designs
@@ -43,9 +44,9 @@ sample_plots <- lapply(c("simpleRandom", "regular",
   # make sure it's an sf of the same CRS
   if(class(pts)[1] != "sf") {
     sample_df <- as.data.frame(pts)
-    sample_sf <- st_as_sf(sample_df, coords = c("x", "y"))
+    sample_sf <- sf::st_as_sf(sample_df, coords = c("x", "y"))
     # this is a bit dirty but the pts object definitely contains data in that CRS
-    st_crs(sample_sf) <- st_crs(agb) # EPSG:3035
+    sf::st_crs(sample_sf) <- sf::st_crs(agb) # EPSG:3035
   } else {
     sample_sf <- pts
   }
@@ -128,3 +129,92 @@ ggplot(data=df, aes(x=method, y=r_RMSE, color=sample)) +
 ```
 ## `plot_geodist` Examples
 
+```{r, warning=F, message=F}
+data_root <- system.file("extdata", package="emodis")
+results_root <- file.path(data_root, "CVresults")
+
+df <- data.frame(method=character(), sample=character(), iteration=numeric(), 
+                 RMSE=numeric(), RMSE_val=numeric(), s2s_s2p=numeric(), 
+                 s2s_cv=numeric(), s2p_cv=numeric())
+
+geodist_list <- list()
+x <- 1
+
+for (smpl in c("simpleRandom", "regular", "clusterMedium", "clusterStrong", "clusterGapped")) {
+  nr_of_files <- length(list.files(file.path(results_root, method), glob2rx("AGB_*.Rdata")))
+  for (method in c("random", "spatial", "nndm")) {
+    for (iteration in 1:1){ # 1:nr_of_files) {
+      # print(paste(method, smpl, iteration, "starting"))
+      
+      # define file names
+      filename <- paste0("AGB_", smpl, sprintf("%03d", iteration), ".Rdata")
+      result_file <- file.path(results_root, method, filename)
+      exhaustive_file <- file.path(results_root, "exhaustive", filename)
+
+      # define coordinate file
+      coordsname <- paste0(sprintf("%03d", iteration), "_coords.Rdata")
+      coords_file <- file.path(samples_root, smpl, coordsname)
+
+      if (!file.exists(exhaustive_file)) next
+      if (!file.exists(result_file)) next
+      if (!file.exists(coords_file)) next
+      
+      # load the validation error of the specific sampling design
+      load(exhaustive_file) # this loads "RMSE"
+      RMSE_val <- RMSE
+      
+      # load the error estimated via CV
+      load(result_file) # this loads and overwrites RMSE
+      if(length(RMSE) > 1) {RMSE <- mean(RMSE)}
+      
+      # load sample coordinate and check if they're ok
+      load(coords_file)
+      if(class(pts)[1] != "sf") {
+        pts_df <- as.data.frame(pts)
+        pts_sf <- sf::st_as_sf(pts_df, coords = c("x", "y"))
+        sf::st_crs(pts_sf) <- sf::st_crs("EPSG:3035") # set crs EPSG:3035
+      } else {
+        pts_sf <- pts
+      }
+      mask <- sf::st_transform(sf::st_as_sf(mask), sf::st_crs(pts_sf))
+      
+      # just take the first iteration
+      i <- 1
+      if (method == "spatial") {
+        fold_index <- i*2 - 1
+        flds_i <- folds[fold_index][[1]]
+      }
+      if (method == "random") {
+        fold_indices <- 1:10 + i*10 - 10
+        flds_i <- folds[fold_indices]
+      }
+      if (method == "nndm") {
+        fold_index <- i*7 - 6
+        idx_train <- folds[fold_index][[1]]
+        idx_test <- folds[fold_index + 1][[1]]
+        flds_i <- list("idx_train" = idx_train, "idx_test" = idx_test)
+      }
+      if (method == "justincase") {
+        gd <- sampled_geodist(x = pts_sf, modeldomain = mask, cvfolds = flds_i, 
+                            stat='ecdf', samples = 50, showPlot = FALSE, cv_method = method)
+      } else {
+        gd <- sampled_geodist(x = pts_sf, modeldomain = mask, cvfolds = flds_i, 
+                              stat = 'density', samples = 50, showPlot = FALSE, cv_method = method)
+      }
+      geodist_list[[x]] <- list("method"=method, "sample"=smpl, "geodist"=gd)
+      x <- x+1
+
+      df <- rbind(df, c(method, smpl, iteration, RMSE, RMSE_val, NA, NA, NA))
+
+    }
+  }
+}
+```
+
+```{r plot-sample-gds, fig.width=7, fig.height=8}
+plot_list <- lapply(geodist_list, function(x) {
+  return(x$geodist$plot + ggtitle(paste(x$method, x$sample)))
+})
+
+ggarrange(plotlist=plot_list, ncol=3, nrow=5, common.legend = T)
+```
