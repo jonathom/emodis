@@ -7,7 +7,7 @@
 EMD_s2p_cv(geodist)
 }
 \arguments{
-\item{geodist}{}
+\item{geodist}{The output of a \code{CAST:plot_geodist()} call}
 }
 \value{
 

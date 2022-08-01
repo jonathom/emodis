@@ -3,7 +3,7 @@
 #' Calculates the Earth Mover's distance between the sample-to-sample and the CV-distances
 #' nearest neighbour distance distributions of a given `CAST::plot_geodist` output.
 #'
-#' @param geodist
+#' @param geodist The output of a `CAST:plot_geodist()` call
 #'
 #' @return
 #' @export
