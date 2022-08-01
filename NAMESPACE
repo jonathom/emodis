@@ -3,3 +3,4 @@
 export(EMD_s2p_cv)
 export(EMD_s2s_cv)
 export(EMD_s2s_s2p)
+export(sampled_geodist)
