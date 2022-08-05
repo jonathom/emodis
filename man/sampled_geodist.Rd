@@ -10,7 +10,7 @@ sampled_geodist(
   samples,
   cvfolds = NA,
   cv_method = TRUE,
-  stat = "ecdf",
+  stat = "density",
   showPlot = TRUE
 )
 }
