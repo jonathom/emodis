@@ -12,9 +12,6 @@ RoxygenNote: 7.1.2
 Imports: 
     CAST,
     emdist,
-    ggplot2,
-    ggpubr,
-    raster,
     sf
 Suggests: 
     knitr,

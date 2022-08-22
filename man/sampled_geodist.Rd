@@ -23,6 +23,8 @@ sampled_geodist(
 
 \item{cvfolds}{a list of CV folds}
 
+\item{cv_method}{a list with row indices}
+
 \item{stat}{'density' or 'ecdf' for plot design}
 
 \item{showPlot}{logical}

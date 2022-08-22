@@ -6,7 +6,7 @@
 #' @param modeldomain sf object of the study area
 #' @param samples size of the sample to be taken
 #' @param cvfolds a list of CV folds
-#' @param cv_method
+#' @param cv_method a list with row indices
 #' @param stat 'density' or 'ecdf' for plot design
 #' @param showPlot logical
 #'

@@ -5,7 +5,7 @@
 #'
 #' @param geodist The output of a `CAST:plot_geodist()` call
 #'
-#' @return
+#' @return A single numeric value
 #' @export
 #'
 #' @examples
