@@ -166,7 +166,7 @@ annotate_figure(gga, top="Example NNDD Plots \nTitles are of the kind: \n CV met
 
 Looking at the right column we can take away that the EMD between the sample-to-sample and the CV-distances distribution decreases when the CV folds are matched using NNDM CV.
 
-**Note** I am using `evaluate_results` here only to show some graphics, but it is also the muscle behind the whole analysis (done on Palma) and uses all other functions I created in this package. To use this function for complete analysis one could run:
+**Note:** I am using `evaluate_results` here only to show some graphics, but it is also the muscle behind the whole analysis (done on Palma) and uses all other functions I created in this package. To use this function for complete analysis one could run:
 ```{r, eval=F, message=F}
 df <- evaluate_results(results_root = system.file("extdata", "CVresults", package="emodis"),
                        samples_root = system.file("extdata", "samples", package="emodis"),

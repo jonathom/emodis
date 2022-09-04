@@ -14,6 +14,19 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # load package and mask
+#' library(emodis)
+#' load(system.file("extdata", "data", "mask.Rdata", package="emodis"))
+#' # load a single example file
+#' coordsname <- paste0(sprintf("%03d", 1), "_coords.Rdata")
+#' coords_file <- file.path(system.file("extdata", "samples", package="emodis"), "clusterGapped", coordsname)
+#' load(coords_file)
+#' # traditional plot_geodist
+#' system.time(CAST::plot_geodist(pts, mask))
+#' # sampled plot_geodist
+#' system.time(sampled_geodist(pts, mask, 50))
+#' }
 sampled_geodist <- function(x, modeldomain, samples, cvfolds = NA, cv_method=TRUE, stat = 'density', showPlot = TRUE) {
 
   row_numbers <- sample(1:nrow(x), samples)
@@ -21,6 +34,10 @@ sampled_geodist <- function(x, modeldomain, samples, cvfolds = NA, cv_method=TRU
   if (!("ID" %in% names(x))) {x$ID <- 1:nrow(x)}
 
   sampled_x <- x[row_numbers,]
+  if(FALSE %in% unique(sf::st_is_valid(sf::st_as_sf(modeldomain)))) {
+    print("making modeldomain valid")
+    modeldomain=sf::st_make_valid(sf::st_as_sf(modeldomain))
+  }
   sampled_modeldomain <- sf::st_sample(sf::st_as_sf(modeldomain), samples)
   sampled_modeldomain <- sf::st_transform(sampled_modeldomain, sf::st_crs(x))
 

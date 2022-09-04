@@ -17,6 +17,22 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # load packages
+#' library(emodis)
+#' library(ggplot2)
+#' # load mask
+#' load(system.file("extdata", "data", "mask.Rdata", package="emodis"))
+#' # run evaluate
+#' df <- evaluate_results(results_root = system.file("extdata", "CVresults", package="emodis"),
+#' samples_root = system.file("extdata", "samples", package="emodis"),
+#' return_EMD = TRUE, # to obtain EMD measures
+#' iterations = 1, # to iterate through all 100 sampling realizations
+#' mask_ = mask)
+#' # make a plot
+#' ggplot(data=df, aes(x=s2s_s2p, y=RMSE_val, color=sample)) +
+#' geom_point()
+#' }
 evaluate_results <- function(results_root, samples_root,
                              sample_designs = c("simpleRandom", "regular", "clusterMedium", "clusterStrong", "clusterGapped"),
                              samples = 50, return_EMD = FALSE,

@@ -43,3 +43,21 @@ A dataframe or a list (see return_type)
 Calculates the Earth Mover's distance between the sample-to-sample and the CV-distances
 nearest neighbour distance distributions of a given \code{CAST::plot_geodist} output.
 }
+\examples{
+\dontrun{
+# load packages
+library(emodis)
+library(ggplot2)
+# load mask
+load(system.file("extdata", "data", "mask.Rdata", package="emodis"))
+# run evaluate
+df <- evaluate_results(results_root = system.file("extdata", "CVresults", package="emodis"),
+samples_root = system.file("extdata", "samples", package="emodis"),
+return_EMD = TRUE, # to obtain EMD measures
+iterations = 1, # to iterate through all 100 sampling realizations
+mask_ = mask)
+# make a plot
+ggplot(data=df, aes(x=s2s_s2p, y=RMSE_val, color=sample)) +
+geom_point()
+}
+}

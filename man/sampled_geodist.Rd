@@ -35,3 +35,18 @@ A \code{CAST::plot_geodist} list
 \description{
 Use this function like \code{CAST::plot_geodist} (only to the intended extent though), except that a random sample is taken before \code{plot_geodist} is executed. This makes the computation much faster.
 }
+\examples{
+\dontrun{
+# load package and mask
+library(emodis)
+load(system.file("extdata", "data", "mask.Rdata", package="emodis"))
+# load a single example file
+coordsname <- paste0(sprintf("\%03d", 1), "_coords.Rdata")
+coords_file <- file.path(system.file("extdata", "samples", package="emodis"), "clusterGapped", coordsname)
+load(coords_file)
+# traditional plot_geodist
+system.time(CAST::plot_geodist(pts, mask))
+# sampled plot_geodist
+system.time(sampled_geodist(pts, mask, 50))
+}
+}

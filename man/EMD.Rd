@@ -23,3 +23,17 @@ dist1 and dist2 can be "sample-to-sample", "sample-to-prediction" or "CV-distanc
 Calculates the Earth Mover's distance between the sample-to-prediction and the CV-distances
 nearest neighbour distance distributions of a given \code{CAST::plot_geodist} output.
 }
+\examples{
+\dontrun{
+library(emodis)
+load(system.file("extdata", "data", "mask.Rdata", package="emodis"))
+# load a single example file
+coordsname <- paste0(sprintf("\%03d", 1), "_coords.Rdata")
+coords_file <- file.path(system.file("extdata", "samples", package="emodis"), "clusterGapped", coordsname)
+load(coords_file)
+dist <- CAST::plot_geodist(pts, mask)
+dist_discrete <- discrete_curve(dist)
+# calculate distance between the curves
+EMD(dist_discrete, "sample-to-sample", "sample-to-prediction")
+}
+}
