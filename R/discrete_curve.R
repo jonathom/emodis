@@ -12,7 +12,7 @@
 discrete_curve <- function(gd, resolution=100) {
   sts <- gd$distances$dist[gd$distances$what == "sample-to-sample"]
   stp <- gd$distances$dist[gd$distances$what == "sample-to-prediction"]
-  if ("CV-distances" %in% levels(dist$distances$what)) {
+  if ("CV-distances" %in% levels(gd$distances$what)) {
     cv  <- gd$distances$dist[gd$distances$what == "CV-distances"]
   } else {
     cv <- max(stp)
@@ -36,7 +36,7 @@ discrete_curve <- function(gd, resolution=100) {
     fg[i,1] <- i # assign distance
     fg[i,2] <- length(sts[sts > dists[i] & sts <= dists[i+1]]) / l_sts
     fg[i,3] <- length(stp[stp > dists[i] & stp <= dists[i+1]]) / l_stp
-    if ("CV-distances" %in% levels(dist$distances$what)) {
+    if ("CV-distances" %in% levels(gd$distances$what)) {
       fg[i,4] <- length(cv[cv > dists[i] & cv <= dists[i+1]]) / l_cv
     } else {
       fg[i,4] <- NA

@@ -42,7 +42,8 @@ library(emodis)
 load(system.file("extdata", "data", "mask.Rdata", package="emodis"))
 # load a single example file
 coordsname <- paste0(sprintf("\%03d", 1), "_coords.Rdata")
-coords_file <- file.path(system.file("extdata", "samples", package="emodis"), "clusterGapped", coordsname)
+coords_file <- file.path(system.file("extdata",
+"samples", package="emodis"), "clusterGapped", coordsname)
 load(coords_file)
 # traditional plot_geodist
 system.time(CAST::plot_geodist(pts, mask))
