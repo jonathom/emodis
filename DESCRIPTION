@@ -1,6 +1,6 @@
 Package: emodis
 Title: Helper functions to analyze Earth Mover's Distance between distance distributions during cross validation
-Version: 0.0.0.9000
+Version: 0.1
 Authors@R: 
     person("Jonathan", "Bahlmann", , "jbahlmann@uni-muenster.de", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
@@ -16,6 +16,9 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown,
+    raster,
+    ggplot2,
+    ggpubr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr

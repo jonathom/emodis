@@ -1,5 +1,5 @@
 ---
-title: "emodis-1"
+title: "EMODIS"
 output: rmarkdown::html_vignette
 bibliography: references.bib
 vignette: >
@@ -15,16 +15,29 @@ knitr::opts_chunk$set(
 )
 ```
 
-# EMODIS - Earth Mover's Distance
+# Investigating the Earth Mover's Distance of Nearest Neighbour Distance Distributions During Cross-Validation
 
-The goal of this analysis is to explore nearest neighbour distance (NND) distributions of different statistical sampling designs as well as during cross-validation. NND distributions are the core idea behind the nearest neighbour distance matching algorithm @mila_nndm, the concept being that more precise map error estimates can be achieved by ensuring that the nearest distances between CV folds match the nearest distances between sample and prediction locations. We want ot explore two different aspects: 
+### Explanation of Notes
 
-* The relationship between the sample-to-sample and the sample-to-prediction NND distributions. Does the relationship of the two curves let us say something about the expected offset from the real map error?
-* The relationship between the sample-to-prediction and the CV-distances NND distributions.
+* The large package size is due to the shipped data
 
-To be able to compare statistical distributions the Earth Mover's distance will be used and tried as a measure. We will be using the function `emdw()` i the package `emdist`.
+## Introduction
 
-## Loading Packages
+The goal of this analysis is to explore nearest neighbour distance (NND) distributions of different statistical sampling designs as well as during cross-validation. NND distributions are the core idea behind the nearest neighbour distance matching algorithm (@mila_nndm), the concept being that more precise map error estimates can be achieved by ensuring that the nearest distances between CV folds match the nearest distances between sample and prediction locations. We want to explore two different aspects: 
+
+* The relationship between the sample-to-sample and the sample-to-prediction NND distributions: What can we learn about the real map error from the relationship of the two NNDD curves?
+
+* The relationship between the difference between sample-to-prediction and the CV-distances NND distributions and the difference between estimated and calculated map error: How does the EMD relate to how good a map error estimate is?
+
+To be able to compare statistical distributions the Earth Mover's distance will be used and tried as a measure. We will be using the function `emdw()` from the package `emdist`. The RMSE will be our error measurement of choice throughout this analysis.
+
+## Methodology
+
+As a case study the datasets and code from the paper "Dealing with clustered samples for assessing map accuracy by cross-validation" (@debruin) are used here. The authors are testing different cross-validation techniques on specific sampling designs (from random to heavily clustered) to then determine the difference between the estimated map error (dependent on the CV used) and the actual map error (dependent on sampling design). Overall, 100 different sampling realizations of 5000 points with 100 CV runs per sample are tested by @debruin. 
+
+The study originally uses five different cross-validation techniques (random K-fold, spatial K-fold, inverse sampling-intensity weighted, homoscedastic model-based, heteroscedastic model-based). Here, only the random and spatial K-fold methods are adopted, while the NNDM CV (@mila_nndm) is added. All sampling designs of the original study are investigated (simple random, regular random, cluster medium, cluster strong and cluster gapped), while I strongly decrease sample size and iterations for faster computation.
+
+### Loading Packages
 
 ```{r setup, warning=FALSE, message=FALSE}
 library(emodis)
@@ -34,14 +47,15 @@ library(raster)
 library(ggplot2)
 library(ggpubr)
 library(emdist)
+# also load a needed mask
 load(system.file("extdata", "data", "mask.Rdata", package="emodis"))
 ```
 
-## Case Study: Sampling Designs
+### Sampling Designs
 
-As a case study the datasets and code from the paper "Dealing with clustered samples for assessing map accuracy by cross-validation" @debruin are used here. The study originally uses five different cross-validation techniques (random k-fold, spatial k-fold, inverse sampling-intensity weighted, homoscedastic model-based, heteroscedastic model-based) to estimate the map error of models built with data from five different sampling techniques (simple random, regular random, cluster medium, cluster strong and cluster gapped). For this analysis random k-fold, spatial k-fold and NNDM @mila_nndm CV were used. From the five sampling designs used by DeBruin et. al with a sample size of 5000, random samples of size 700 were taken (per sample realization) to get the enormous amount of computation time and power needed for the NNDM leave-one-out CV under control. Here's an overview of the five sampling designs used. Note how the sampling makes the regular sample look close to a simple random sample.
+For this analysis random K-fold, spatial K-fold and NNDM CV (@mila_nndm) were used. From the five sampling designs used by DeBruin et. al with a sample size of 5000, random samples of size 700 were taken (per sample realization). The sampling realizations are shipped as `sf` or `matrix` objects with this package in `/inst/extdata/samples`.
 
-The sampling realizations are shipped with the package in `/extdata/samples`.
+Here an overview of the five sampling designs used is created.
 
 ```{r create-sample-plots}
 samples_root <- system.file("extdata", "samples", package="emodis")
@@ -85,166 +99,15 @@ sample_plots <- lapply(c("simpleRandom", "regular",
 ggarrange(plotlist=sample_plots, ncol=3, nrow=2, common.legend = T)
 ```
 
-## Validation Results
+### Calculation and Estimation of Map Error
 
-First, it might make sense to get an overview of how well the different CV methods were able to estimate the actual map error. For this, a model built with the specific sampling realizations is used to predict on the whole study area, such that the actual map error can be calculated. The results of there computations plus the CV validation results are shipped in `/extdata/CVresults` with this package. The computations were done on Palma II. The following code iterates through these results to build a dataframe. 
+To calculate the actual map error, a model built with the specific sampling realizations is used to predict on the whole study area. For the estimated map error, CV splits are formed as defined by the respective CV strategy. The error resulting from the model training, i.e. the error estimated via the respective CV strategy, is then taken as an approximate of the map error one can expect from that model. This process is repeated 3 times per sample realization (100 realizations overall) and later averaged.
 
-```{r analysis-light}
-data_root <- system.file("extdata", package="emodis")
-results_root <- file.path(data_root, "CVresults")
+The RMSEs as well as the CV folds are shipped in `/extdata/CVresults/` (`/exhaustive`, `/nndm`, `/random`, `/spatial`) with this package. The computations were done on Palma II and are not part of this package but part of my work in the Uebersat project, so the scripts can be found here [https://github.com/jonathom/emodi/tree/master/R](https://github.com/jonathom/emodi/tree/master/R) (with `CV_exhaustive_parallel.R`, `CV_nndm_jon.R`, `CV_random_flds.R` and `CV_spatial_jon.R` being the files containing the methodology) and here [https://github.com/jonathom/deBruin_add_nndm](https://github.com/jonathom/deBruin_add_nndm). 
 
-df <- data.frame(method=character(), sample=character(), iteration=numeric(), 
-                 RMSE=numeric(), RMSE_val=numeric(), s2s_s2p=numeric(), 
-                 s2s_cv=numeric(), s2p_cv=numeric())
+### Earth Mover's Distances
 
-for (method in c("random", "spatial", "nndm")) {
-  nr_of_files <- length(list.files(file.path(results_root, method), glob2rx("AGB_*.Rdata")))
-  for (smpl in c("simpleRandom", "regular", "clusterMedium", "clusterStrong", "clusterGapped")) {
-    for (iteration in 1:100){ # 1:nr_of_files) {
-      # print(paste(method, smpl, iteration, "starting"))
-      
-      # define file names
-      filename <- paste0("AGB_", smpl, sprintf("%03d", iteration), ".Rdata")
-      result_file <- file.path(results_root, method, filename)
-      exhaustive_file <- file.path(results_root, "exhaustive", filename)
-
-      # define coordinate file
-      coordsname <- paste0(sprintf("%03d", iteration), "_coords.Rdata")
-      coords_file <- file.path(samples_root, smpl, coordsname)
-
-      if (!file.exists(exhaustive_file)) next
-      if (!file.exists(result_file)) next
-      if (!file.exists(coords_file)) next
-      
-      # load the validation error of the specific sampling design
-      load(exhaustive_file) # this loads "RMSE"
-      RMSE_val <- RMSE
-      
-      # load the error estimated via CV
-      load(result_file) # this loads and overwrites RMSE
-      if(length(RMSE) > 1) {RMSE <- mean(RMSE)}
-      
-      df <- rbind(df, c(method, smpl, iteration, RMSE, RMSE_val, 0, 0, 0))
-    }
-  }
-}
-
-names(df) <- c("method", "sample", "iteration", "RMSE", "RMSE_val", "s2s_s2p", "s2s_cv", "s2p_cv")
-```
-
-```{r, fig.width=7, fig.height=5}
-df$RMSE <- as.numeric(df$RMSE)
-df$RMSE_val <- as.numeric(df$RMSE_val)
-df$method <- factor(df$method, levels = c('random','spatial','nndm'),ordered = TRUE)
-df$sample <- factor(df$sample, levels = c('simpleRandom','regular','clusterMedium',
-                                          'clusterStrong', 'clusterGapped'),ordered = TRUE)
-
-df$r_RMSE <- 100 * (df$RMSE - df$RMSE_val) / df$RMSE_val
-
-ggplot(data=df, aes(x=method, y=r_RMSE, color=sample)) +
-  geom_boxplot() +
-  ggtitle("Relative Map Error by CV Method and Sampling Design")
-```
-
-Random CV seems off..
-
-## Examples of NND Distributions
-
-The NND distributions of distances between a) sampling locations, b) sampling and prediction locations and c) between CV folds can be calculated using `CAST::plot_geodist()`. Here are some examples for a selection of settings (samples: simple random, strongly clustered and cluster gapped X the three CV methods random, spatial and NNDM):
-
-```{r, warning=F, message=F}
-data_root <- system.file("extdata", package="emodis")
-results_root <- file.path(data_root, "CVresults")
-
-df <- data.frame(method=character(), sample=character(), iteration=numeric(), 
-                 RMSE=numeric(), RMSE_val=numeric(), s2s_s2p=numeric(), 
-                 s2s_cv=numeric(), s2p_cv=numeric())
-
-geodist_list <- list()
-x <- 1
-
-for (smpl in c("simpleRandom", "clusterStrong", "clusterGapped")) {
-  nr_of_files <- length(list.files(file.path(results_root, method), glob2rx("AGB_*.Rdata")))
-  for (method in c("random", "spatial", "nndm")) {
-    for (iteration in 1:1){ # 1:nr_of_files) {
-      # print(paste(method, smpl, iteration, "starting"))
-      
-      # define file names
-      filename <- paste0("AGB_", smpl, sprintf("%03d", iteration), ".Rdata")
-      result_file <- file.path(results_root, method, filename)
-      exhaustive_file <- file.path(results_root, "exhaustive", filename)
-
-      # define coordinate file
-      coordsname <- paste0(sprintf("%03d", iteration), "_coords.Rdata")
-      coords_file <- file.path(samples_root, smpl, coordsname)
-
-      if (!file.exists(exhaustive_file)) next
-      if (!file.exists(result_file)) next
-      if (!file.exists(coords_file)) next
-      
-      # load the validation error of the specific sampling design
-      load(exhaustive_file) # this loads "RMSE"
-      RMSE_val <- RMSE
-      
-      # load the error estimated via CV
-      load(result_file) # this loads and overwrites RMSE
-      if(length(RMSE) > 1) {RMSE <- mean(RMSE)}
-      
-      # load sample coordinate and check if they're ok
-      load(coords_file)
-      if(class(pts)[1] != "sf") {
-        pts_df <- as.data.frame(pts)
-        pts_sf <- sf::st_as_sf(pts_df, coords = c("x", "y"))
-        sf::st_crs(pts_sf) <- sf::st_crs("EPSG:3035") # set crs EPSG:3035
-      } else {
-        pts_sf <- pts
-      }
-      mask <- sf::st_transform(sf::st_as_sf(mask), sf::st_crs(pts_sf))
-      
-      # just take the first iteration
-      i <- 1
-      if (method == "spatial") {
-        fold_index <- i*2 - 1
-        flds_i <- folds[fold_index][[1]]
-      }
-      if (method == "random") {
-        fold_indices <- 1:10 + i*10 - 10
-        flds_i <- folds[fold_indices]
-      }
-      if (method == "nndm") {
-        fold_index <- i*7 - 6
-        idx_train <- folds[fold_index][[1]]
-        idx_test <- folds[fold_index + 1][[1]]
-        flds_i <- list("idx_train" = idx_train, "idx_test" = idx_test)
-      }
-      if (method == "justincase") {
-        gd <- sampled_geodist(x = pts_sf, modeldomain = mask, cvfolds = flds_i, 
-                            stat='ecdf', samples = 50, showPlot = FALSE, cv_method = method)
-      } else {
-        gd <- sampled_geodist(x = pts_sf, modeldomain = mask, cvfolds = flds_i, 
-                              stat = 'density', samples = 50, showPlot = FALSE, cv_method = method)
-      }
-      geodist_list[[x]] <- list("method"=method, "sample"=smpl, "geodist"=gd)
-      x <- x+1
-
-      df <- rbind(df, c(method, smpl, iteration, RMSE, RMSE_val, NA, NA, NA))
-
-    }
-  }
-}
-```
-
-```{r plot-sample-gds, fig.width=7, fig.height=6}
-plot_list <- lapply(geodist_list, function(x) {
-  return(x$geodist$plot + ggtitle(paste(x$method, x$sample)))
-})
-
-ggarrange(plotlist=plot_list, ncol=3, nrow=3, common.legend = T)
-```
-
-## The idea behind Earth Mover's Distance and NN Distance Distributions
-
-The Earth Mover's Distance is defined as the energy that needed to 'shovel' (when thinking of distributions as dirt piles) one distribution into the shape of the other distribution. It is effectively a measure of distance between two distributions.
+The Earth Mover's Distance is defined as the energy that needed to 'shovel' (when thinking of distributions as dirt piles) one distribution to match the shape of the other distribution. It is effectively a measure of distance between two distributions. The implementation in the package `emdist` is used.
 
 ```{r}
 # give distribution A, weights, distribution B, weights. 
@@ -256,81 +119,94 @@ emdw(c(1,2,3,2,1), rep(1,5), c(1,2,3,2,1), rep(1,5))
 emdw(c(2,3,4,3,2), rep(1,5), c(1,2,3,2,1), rep(1,5))
 ```
 
-So what kind of EMD values are we talking about when considering NND distributions? We're taking an element from the plot list we just created to have a look. The functions `EMD_s2s_s2p`, `EMD_s2s_cv` and `EMD_s2p_cv` calculate the EMD between the sample-to-sample and the sample-to-prediction, between the sample-to-sample and the CV-distances and between the sample-to-prediction and CV-distances, respectively.
+### Analysis
 
-```{r}
-listel <- geodist_list[[9]]
-listel$method
-listel$sample
-listel$geodist$plot
-geodist_df <- listel$geodist
+Key to this analysis is that I wanted to calculate the statistical distances between the nearest neighbour distance distributions of the categories sample-to-sample, sample-to-prediction, and CV-distances. The function `emodis::evaluate_results()` takes care of this: For each CV strategy in each sample realization the saved folds are fed into the function `emodis::sampled_geodist`, which takes a random sample of the input to make computation faster. The distributions are then put into regular bins with `emodis::dicrete_curve()` and EMD distances between the curves are calculated via `emodis::EMD()`. 
 
+The heavy lifting of the analysis was again done on Palma, where 200 samples were taken from the folds to calculate the NND distances. This is why here we load an already calculated dataframe.
 
-EMD_s2s_s2p(geodist_df)
-EMD_s2s_cv(geodist_df)
-EMD_s2p_cv(geodist_df)
+```{r, warning=F, message=F}
+load(system.file("extdata", "result_df.Rdata", package="emodis"))
+df_palma <- na.omit(df_palma)
+df_palma$method <- factor(df_palma$method, ordered = T, levels=c("random", "spatial", "nndm"))
+df_palma$sample <- factor(df_palma$sample, ordered=T, levels=c("simpleRandom", "regular", "clusterMedium", "clusterStrong", "clusterGapped"))
+df_palma$r_RMSE <- 100 * (df_palma$RMSE - df_palma$RMSE_val) / df_palma$RMSE_val
 ```
 
-## Explain analysis and how it is done on Palma 
+## Results
 
+### RMSE in Relation to Sampling Design and CV Method
 
-
-```{r}
-load("/home/petra/iloek_job/wadoux/emodi/result_df_200_samples_longer_run.Rdata")
-df_$RMSE <- as.numeric(df_$RMSE)
-df_$RMSE_val <- as.numeric(df_$RMSE_val)
-df_$s2s_cv <- as.numeric(df_$s2s_cv)
-df_$s2s_s2p <- as.numeric(df_$s2s_s2p)
-df_$s2p_cv <- as.numeric(df_$s2p_cv)
-df_$r_RMSE <- 100 * (df_$RMSE - df_$RMSE_val) / df_$RMSE_val
-df_$abs_r_RMSE <- abs(df_$r_RMSE)
+```{r, message=F, fig.width=7, fig.height=5}
+ggplot(data=df_palma, aes(x=method, y=r_RMSE, color=sample)) +
+  geom_boxplot() +
+  ggtitle("Relative Map Error by CV Method and Sampling Design")
 ```
 
-## Thesis 1
+The RMSE is generelly overestimated (above the 0% line). For the (more realistic) case of heavily clustered sampling designs, the NNDM method gets closest to a properly estimated RMSE. The heavy overestimation of error in the random K-fold CV method inside the random and regular sampling designs seem unusual.
 
-```{r}
-ggplot(data=df_, aes(x=abs_r_RMSE, y=s2s_s2p)) +
+### Example NND Distributions
+
+The NND distributions of distances between a) sampling locations, b) sampling and prediction locations and c) between CV folds are calculated using `emodis::sampled_geodist()` inside of `emodis::evaluate_results()`. Here are some examples for a selection of settings (samples: simple random, medium clustered and cluster gapped for each of the three CV methods random, spatial and NNDM):
+
+```{r plot-sample-gds, message = F, fig.width=7, fig.height=6}
+results_root <- system.file("extdata", "CVresults", package="emodis")
+samples_root <- system.file("extdata", "samples", package="emodis")
+# using evaluate_results to return a list of geodist objects containing the distances already measured
+geodist_list <- evaluate_results(results_root, samples_root, sample_designs = c("simpleRandom", "clusterMedium", "clusterStrong"), return_type = "geodist", return_EMD = TRUE, mask_ = mask)
+
+# extracting plots from list
+plot_list <- lapply(geodist_list, function(x) {
+  return(x$geodist$plot + ggtitle(paste0(x$method, ", ", x$sample, "\n", round(x$s2p_cv*1000)/1000 )))
+})
+
+gga <- ggarrange(plotlist=plot_list, ncol=3, nrow=3, common.legend = T)
+annotate_figure(gga, top="Example NNDD Plots \nTitles are of the kind: \n CV method, sampling method \nEMD distance sample-to-sample to CV-distances")
+```
+
+Looking at the right column we can take away that the EMD between the sample-to-sample and the CV-distances distribution decreases when the CV folds are matched using NNDM CV.
+
+**Note** I am using `evaluate_results` here only to show some graphics, but it is also the muscle behind the whole analysis (done on Palma) and uses all other functions I created in this package. To use this function for complete analysis one could run:
+```{r, eval=F, message=F}
+df <- evaluate_results(results_root = system.file("extdata", "CVresults", package="emodis"),
+                       samples_root = system.file("extdata", "samples", package="emodis"),
+                       return_EMD = TRUE, # to obtain EMD measures
+                       iterations = 2, # to iterate through all 100 sampling realizations
+                       mask_ = mask)
+```
+
+### Thesis 1: Relationship of EMD and True Map Error
+
+```{r, message=FALSE, fig.width=7, fig.height=6}
+ggplot(data=df_palma, aes(x=sample, y=s2s_s2p)) +
+  geom_boxplot() +
+  xlab("Sampling Method") +
+  ylab("EM Distance between sample-to-sample and sample-to-pred. NND Distributions") +
+  ggtitle("Distance between Sample, Prediction Locations and Sampling Method")
+```
+
+We observe here an increase in EM distances as the samplings get more clustered.
+
+```{r, message=FALSE, fig.width=7, fig.height=6}
+ggplot(data=df_palma, aes(x=s2s_s2p, y=RMSE_val, color=sample)) +
+  geom_point() +
+  ylab("True Map Error") +
+  xlab("EM Distance between sample-to-sample and sample-to-pred. NND Distributions") +
+  ggtitle("Sampling, Prediction Locations and the True Map Error")
+```
+
+
+### Thesis 2: Relationship of the EMD and the Relative Map Error
+
+```{r, message=FALSE, fig.width=7, fig.height=6}
+ggplot(data=df_palma, aes(x=r_RMSE, y=s2p_cv, color=method)) +
   geom_point()
 ```
 
-## Thesis 2
+In this graphic we can observe how NNDM CV generally has low distances between the sample-to-prediction and the CV-distances distributions, while random and spatial CVs have higher distances. We can also see how these low NNDM - EMD distances lead to generally low relatively low deviations from the true Error, even though random and spatial CV also produce some lower-deviating error erstimates.
 
-```{r, fig.width=7, fig.height=5}
-df_$sample <- factor(df_$sample, levels=c("simpleRandom", "regular", "clusterMedium", "clusterStrong", "clusterGapped"))
-df_$method <- factor(df_$method, levels=c("random", "spatial", "nndm"))
+## Discussion
 
-
-ggplot(data=df_, aes(x=method, y=r_RMSE, color=sample)) +
-  geom_boxplot()
-
-ggplot(data=df_, aes(x=method, y=s2s_s2p, color=sample)) +
-  geom_boxplot()
-
-ggplot(data=df_, aes(x=method, y=s2s_cv, color=sample)) +
-  geom_boxplot()
-
-ggplot(data=df_, aes(x=method, y=s2p_cv, color=sample)) +
-  geom_boxplot()
-
-ggplot(data=df_, aes(x=r_RMSE, y=s2s_s2p, color=method)) +
-  geom_point()
-
-ggplot(data=df_, aes(x=r_RMSE, y=s2s_cv, color=method)) +
-  geom_point()
-
-ggplot(data=df_, aes(x=r_RMSE, y=s2p_cv, color=method)) +
-  geom_point()
-
-# absolute
-
-ggplot(data=df_, aes(x=abs_r_RMSE, y=s2s_s2p, color=method)) +
-  geom_point()
-
-ggplot(data=df_, aes(x=abs_r_RMSE, y=s2s_cv, color=method)) +
-  geom_point()
-
-ggplot(data=df_, aes(x=abs_r_RMSE, y=s2p_cv, color=method)) +
-  geom_point()
-```
+Looking at the results, the Earth Mover's distance seems eligible to represent the distances between the NND distributions. However, we only see hints of the relationships we would expect of such a measure (e.g.: low EMD between sample-to-prediction and CV-distance dist. indicating a low estimated map error). This might be due to the fact that the error estimates in general are not quite matching our expectations as well (e.g. random CV on a random sample _overestimating_ the map error). As the underlying data is part of Uebersat, I hope to improve this analysis in the future with updated work.
 
 ## References
