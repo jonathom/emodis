@@ -2,26 +2,26 @@
 % Please edit documentation in R/EMD.R
 \name{EMD}
 \alias{EMD}
-\title{EMD between sample-to-prediction and CV-distances}
+\title{EMD between two distributions}
 \usage{
 EMD(df, dist1, dist2)
 }
 \arguments{
-\item{df}{A dataframe, output of \code{emodis::discrete_curve()}}
+\item{df}{A dataframe, e.g. output of \code{emodis::discrete_curve()}}
 
-\item{dist1}{The name of the first distribution}
+\item{dist1}{The name of the first distribution (column name)}
 
-\item{dist2}{The name of the second distributions}
+\item{dist2}{The name of the second distributions (column name)}
 }
 \value{
-The EMD
+numerical The EMD
 }
 \description{
 dist1 and dist2 can be "sample-to-sample", "sample-to-prediction" or "CV-distances"
 }
 \details{
-Calculates the Earth Mover's distance between the sample-to-prediction and the CV-distances
-nearest neighbour distance distributions of a given \code{CAST::plot_geodist} output.
+Calculates the Earth Mover's distance between two given nearest neighbour distance
+distributions contained in a dataframe.
 }
 \examples{
 \dontrun{

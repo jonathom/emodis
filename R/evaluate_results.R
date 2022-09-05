@@ -1,6 +1,8 @@
-#' Iterate through result folders to obtain either a dataframe with results such as 
-#' RMSE per realization and method and EMD measures, or a list containing the same information but also the `plot_geodist`
-#' objects for plotting purposes.
+#' Iterate through result folders to summarize them
+#'
+#' Obtains either a dataframe with results such as RMSE per realization and
+#' method and EMD measures, or a list containing the same information but also
+#' the `plot_geodist` objects for plotting purposes.
 #'
 #' @param results_root The folder containing the method subfolders
 #' @param samples_root The folder containing the sample realizations

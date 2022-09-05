@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluate_results.R
 \name{evaluate_results}
 \alias{evaluate_results}
-\title{Iterate through result folders to obtain a dataframe}
+\title{Iterate through result folders to summarize them}
 \usage{
 evaluate_results(
   results_root,
@@ -40,8 +40,9 @@ evaluate_results(
 A dataframe or a list (see return_type)
 }
 \description{
-Calculates the Earth Mover's distance between the sample-to-sample and the CV-distances
-nearest neighbour distance distributions of a given \code{CAST::plot_geodist} output.
+Obtains either a dataframe with results such as RMSE per realization and
+method and EMD measures, or a list containing the same information but also
+the \code{plot_geodist} objects for plotting purposes.
 }
 \examples{
 \dontrun{

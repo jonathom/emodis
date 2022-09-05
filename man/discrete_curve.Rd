@@ -2,7 +2,7 @@
 % Please edit documentation in R/discrete_curve.R
 \name{discrete_curve}
 \alias{discrete_curve}
-\title{Iterate through result folders to obtain a dataframe}
+\title{Take a \code{plot_geodist} object and put the calculated distances into equally sized bins}
 \usage{
 discrete_curve(gd, resolution = 100)
 }
@@ -12,8 +12,8 @@ discrete_curve(gd, resolution = 100)
 \item{resolution}{numerical How many bins should the result have?}
 }
 \value{
-A dataframe
+A dataframe with four columns: dist, samaple-to-sample, sample-to-prediction, CV-distances
 }
 \description{
-Discretizes the dataframe output by \code{plot_geodist()}.
+Take a \code{plot_geodist} object and put the calculated distances into equally sized bins
 }
