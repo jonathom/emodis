@@ -1,15 +1,15 @@
-#' EMD between sample-to-prediction and CV-distances
+#' EMD between two distributions
 #'
-#' Calculates the Earth Mover's distance between the sample-to-prediction and the CV-distances
-#' nearest neighbour distance distributions of a given `CAST::plot_geodist` output.
+#' Calculates the Earth Mover's distance between two given nearest neighbour distance 
+#' distributions contained in a dataframe.
 #'
-#' @param df A dataframe, output of `emodis::discrete_curve()`
-#' @param dist1 The name of the first distribution
-#' @param dist2 The name of the second distributions
+#' @param df A dataframe, e.g. output of `emodis::discrete_curve()`
+#' @param dist1 The name of the first distribution (column name)
+#' @param dist2 The name of the second distributions (column name)
 #'
 #' @description dist1 and dist2 can be "sample-to-sample", "sample-to-prediction" or "CV-distances"
 #'
-#' @return The EMD
+#' @return numerical The EMD
 #' @export
 #'
 #' @examples
