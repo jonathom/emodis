@@ -5,8 +5,6 @@
 #'
 #' @return A dataframe with four columns: dist, samaple-to-sample, sample-to-prediction, CV-distances
 #' @export
-#'
-#' @examples
 discrete_curve <- function(gd, resolution=100) {
   sts <- gd$distances$dist[gd$distances$what == "sample-to-sample"]
   stp <- gd$distances$dist[gd$distances$what == "sample-to-prediction"]

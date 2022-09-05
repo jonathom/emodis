@@ -171,7 +171,7 @@ Looking at the right column we can take away that the EMD between the sample-to-
 df <- evaluate_results(results_root = system.file("extdata", "CVresults", package="emodis"),
                        samples_root = system.file("extdata", "samples", package="emodis"),
                        return_EMD = TRUE, # to obtain EMD measures
-                       iterations = 2, # to iterate through all 100 sampling realizations
+                       iterations = 100, # to iterate through all 100 sampling realizations
                        mask_ = mask)
 ```
 
@@ -188,13 +188,14 @@ ggplot(data=df_palma, aes(x=sample, y=s2s_s2p)) +
 We observe here an increase in EM distances as the samplings get more clustered.
 
 ```{r, message=FALSE, fig.width=7, fig.height=6}
-ggplot(data=df_palma, aes(x=s2s_s2p, y=RMSE_val, color=sample)) +
+ggplot(data=df_palma, aes(x=RMSE_val, y=s2s_s2p, color=sample)) +
   geom_point() +
-  ylab("True Map Error") +
-  xlab("EM Distance between sample-to-sample and sample-to-pred. NND Distributions") +
+  xlab("True Map Error") +
+  ylab("EM Distance between sample-to-sample and sample-to-pred. NND Distributions") +
   ggtitle("Sampling, Prediction Locations and the True Map Error")
 ```
 
+It seems like, although only loosely, larger map errors go hand in hand with increasing disparity between the sample-to-sample and the sample-to-prediction NND distributions.
 
 ### Thesis 2: Relationship of the EMD and the Relative Map Error
 
@@ -207,6 +208,6 @@ In this graphic we can observe how NNDM CV generally has low distances between t
 
 ## Discussion
 
-Looking at the results, the Earth Mover's distance seems eligible to represent the distances between the NND distributions. However, we only see hints of the relationships we would expect of such a measure (e.g.: low EMD between sample-to-prediction and CV-distance dist. indicating a low estimated map error). This might be due to the fact that the error estimates in general are not quite matching our expectations as well (e.g. random CV on a random sample _overestimating_ the map error). As the underlying data is part of Uebersat, I hope to improve this analysis in the future with updated work.
+Looking at the results, the Earth Mover's distance seems eligible to represent the distances between the NND distributions. However, we only see hints of the relationships we would expect of such a measure (e.g.: low EMD between sample-to-prediction and CV-distance dist. indicating a low estimated map error). This might be due to the fact that the error estimates in general are not quite matching our expectations as well (e.g. random CV on a random sample _grossly_ overestimating the map error). As the underlying data is part of Uebersat, I hope to improve this analysis in the future with updated work.
 
 ## References
