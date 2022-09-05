@@ -1,11 +1,9 @@
-#' Iterate through result folders to obtain a dataframe
-#'
-#' Discretizes the dataframe output by `plot_geodist()`.
+#' Take a `plot_geodist` object and put the calculated distances into equally sized bins
 #'
 #' @param gd The output of a `plot_geodist()` call
 #' @param resolution numerical How many bins should the result have?
 #'
-#' @return A dataframe
+#' @return A dataframe with four columns: dist, samaple-to-sample, sample-to-prediction, CV-distances
 #' @export
 #'
 #' @examples
