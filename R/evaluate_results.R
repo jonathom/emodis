@@ -1,7 +1,6 @@
-#' Iterate through result folders to obtain a dataframe
-#'
-#' Calculates the Earth Mover's distance between the sample-to-sample and the CV-distances
-#' nearest neighbour distance distributions of a given `CAST::plot_geodist` output.
+#' Iterate through result folders to obtain either a dataframe with results such as 
+#' RMSE per realization and method and EMD measures, or a list containing the same information but also the `plot_geodist`
+#' objects for plotting purposes.
 #'
 #' @param results_root The folder containing the method subfolders
 #' @param samples_root The folder containing the sample realizations
